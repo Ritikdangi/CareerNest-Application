@@ -15,6 +15,14 @@ export const axiosInstance = axios.create({
 	withCredentials: true,
 });
 
+// One-time diagnostic to verify baseURL and credential mode in production.
+if (!axiosInstance.__loggedBase) {
+	axiosInstance.__loggedBase = true;
+	try {
+		console.log('[AXIOS_INIT] baseURL=', axiosInstance.defaults.baseURL, 'withCredentials=', axiosInstance.defaults.withCredentials);
+	} catch {}
+}
+
 // Optional setup hook to attach interceptors that need app context
 export const setupAxiosInterceptors = (queryClient) => {
 	// Avoid attaching multiple times in HMR
@@ -26,8 +34,12 @@ export const setupAxiosInterceptors = (queryClient) => {
 		(error) => {
 			const status = error?.response?.status;
 			if (status === 401) {
+				const debugAuth = typeof window !== 'undefined' && window.localStorage.getItem('DEBUG_AUTH') === 'true';
+				if (debugAuth) {
+					console.log('[AXIOS_401] path=', error.config?.url, 'base=', axiosInstance.defaults.baseURL, 'headersSent=', Object.keys(error.config?.headers || {}));
+					return Promise.reject(error); // do not redirect, allow inspection
+				}
 				try { queryClient?.clear?.(); } catch {}
-				// Redirect to login if not already there
 				if (typeof window !== 'undefined') {
 					const path = window.location.pathname;
 					if (path !== '/login' && path !== '/signup') {

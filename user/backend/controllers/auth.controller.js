@@ -133,25 +133,46 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
 	try {
-		let { username, password } = req.body;
-		// Treat the single input as identifier that can be username or email
-		let identifier = (username || "").trim();
-		if (identifier && identifier.includes(" ")) {
+		// Accept either username or email field from client for flexibility
+		let { username, email, password } = req.body;
+		const identifierSource = username ? "username" : (email ? "email" : "none");
+		let identifier = (username || email || "").trim();
+		if (!identifier) {
+			console.log("[LOGIN_INVALID_INPUT] Missing identifier field");
+			return res.status(400).json({ message: "Invalid credentials" });
+		}
+		// If it's meant to be a username (no @) reject internal spaces; allow spaces in email local-part trimming
+		if (!identifier.includes("@") && identifier.includes(" ")) {
+			console.log("[LOGIN_INVALID_USERNAME_SPACE] identifier=", identifier);
 			return res.status(400).json({ message: "Username must not contain spaces" });
 		}
 
-		// Try username first, then fallback to email for compatibility
-		let user = await User.findOne({ username: identifier });
-		if (!user) {
-			user = await User.findOne({ email: identifier.toLowerCase() });
-		}
-		if (!user) return res.status(400).json({ message: "Invalid credentials" });
+		console.log(`{LOGIN_ATTEMPT} source=${identifierSource} identifier=${identifier}`);
 
-		const isMatch = await bcrypt.compare(password, user.password);
-		if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+		let userFoundBy = null;
+		let user = await User.findOne({ username: identifier });
+		if (user) {
+			userFoundBy = "username";
+		} else {
+			// Normalize email lowercase
+			user = await User.findOne({ email: identifier.toLowerCase() });
+			if (user) userFoundBy = "email";
+		}
+
+		if (!user) {
+			console.log("[LOGIN_USER_NOT_FOUND] identifier=", identifier);
+			return res.status(400).json({ message: "Invalid credentials" });
+		}
+		console.log(`{LOGIN_USER_FOUND} by=${userFoundBy} id=${user._id}`);
+
+		const isMatch = await bcrypt.compare(password || "", user.password);
+		if (!isMatch) {
+			console.log("[LOGIN_PASSWORD_MISMATCH] userId=", user._id);
+			return res.status(400).json({ message: "Invalid credentials" });
+		}
+		console.log("[LOGIN_PASSWORD_OK] userId=", user._id);
 
 		const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "3d" });
-
 		const session = new Session({ userId: user._id, token });
 		await session.save();
 
@@ -161,6 +182,7 @@ export const login = async (req, res) => {
 			...baseCookieOptions,
 			maxAge: 3 * 24 * 60 * 60 * 1000,
 		});
+		console.log(`{LOGIN_COOKIE_SET} name=${cookieName} domain=${baseCookieOptions.domain || 'none'} sameSite=${baseCookieOptions.sameSite} secure=${baseCookieOptions.secure} httpOnly=${baseCookieOptions.httpOnly}`);
 
 		res.json({ message: "Logged in successfully" });
 	} catch (error) {
