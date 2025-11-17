@@ -4,11 +4,12 @@ import axios from "axios";
 // fall back to the previous defaults. This lets you run the backend on 5000
 // (or any other port) by setting VITE_BACKEND_URL in client/.env.local.
 const viteBackend = import.meta.env.VITE_BACKEND_URL;
+// Prefer same-origin in production to leverage Vercel rewrites and first-party cookies.
 const baseUrl = viteBackend
 	? `${viteBackend.replace(/\/$/, '')}/api/v1`
 	: (import.meta.env.MODE === "development"
 			? "http://localhost:5000/api/v1"
-			: "https://api.alumnlink.com/api/v1");
+			: "/api/v1");
 
 export const axiosInstance = axios.create({
 	baseURL: baseUrl,
