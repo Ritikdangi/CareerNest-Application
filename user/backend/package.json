@@ -1,0 +1,46 @@
+{
+	"name": "alumnlink-backend",
+	"version": "1.0.0",
+	"description": "Backend for CareerNest application",
+	"main": "server.js",
+	"scripts": {
+		"dev": "nodemon server.js",
+		"start": "node server.js",
+		"vercel-build": "echo 'Building for Vercel deployment'",
+		"test-connection": "node connectionTest.js",
+		"keep-alive": "node utils/external-keepalive.js",
+		"m0-keepalive": "node utils/m0-external-keepalive.js",
+		"m0-keepalive-stats": "node utils/m0-external-keepalive.js --stats",
+		"monitor": "node -e \"import('./lib/dbMonitor.js').then(m => { m.default.startMonitoring(); console.log('Database monitoring started. Press Ctrl+C to stop.'); })\"",
+		"add-sample-activity": "node scripts/add-sample-activity.js",
+		"send-test-email": "node scripts/send-test-email.js"
+	},
+	"keywords": [],
+	"author": "",
+	"type": "module",
+	"license": "ISC",
+	"engines": {
+		"node": ">=18.x"
+	},
+	"dependencies": {
+		"@aws-sdk/client-s3": "^3.856.0",
+		"@aws-sdk/s3-request-presigner": "^3.856.0",
+		"bcryptjs": "^2.4.3",
+		"cloudinary": "^2.4.0",
+		"cookie-parser": "^1.4.6",
+		"cors": "^2.8.5",
+		"crypto": "^1.0.1",
+		"dotenv": "^16.5.0",
+		"express": "^4.19.2",
+		"express-validator": "^7.2.1",
+		"jsonwebtoken": "^9.0.2",
+		"mailtrap": "^3.4.0",
+		"nodemailer": "^6.9.3",
+		"mongoose": "^8.6.1",
+		"multer": "^1.4.5-lts.1",
+		"serverless-http": "^3.2.0"
+	},
+	"devDependencies": {
+		"nodemon": "^3.1.4"
+	}
+}

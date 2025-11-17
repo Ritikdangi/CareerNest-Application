@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>CareerNest icon</title>
+  <rect width="64" height="64" rx="12" fill="#fe6019"/>
+  <g fill="#fff" transform="translate(6,6)">
+    <path d="M18 6c-6.627 0-12 5.373-12 12s5.373 12 12 12c3.314 0 6.313-1.33 8.485-3.515l-3.162-3.162A6 6 0 0 1 18 27c-3.314 0-6-2.686-6-6s2.686-6 6-6c1.657 0 3.157.672 4.243 1.757L25 13.485C22.657 11.142 20.471 10 18 10z"/>
+  </g>
+</svg>
