@@ -319,75 +319,41 @@ export const linkedInCallback = async (req, res) => {
 			return res.status(400).json({ message: "Failed to fetch user data from LinkedIn" });
 		}
 
-		// Step 3: Upload profile picture to Cloudinary (if it exists)
+		// Step 3: Upload profile picture to Spaces (if it exists)
 		let profilePictureUrl = '';
 		if (userdata.picture) {
 			try {
 				const imageRes = await fetch(userdata.picture);
 				const buffer = await imageRes.arrayBuffer();
 				const imageBuffer = Buffer.from(buffer);
-
-				// Upload to DigitalOcean Spaces instead of Cloudinary
 				profilePictureUrl = await uploadToSpaces(
 					imageBuffer,
 					'linkedin-profile.jpg',
 					'image/jpeg',
 					'linkedin-profiles'
-						const origin = req.headers.origin;
-						const referer = req.headers.referer;
-						try {
-							console.info("LOGIN_ATTEMPT", {
-								origin,
-								referer,
-								bodyKeys: Object.keys(req.body || {}),
-							});
-						} catch {}
 				);
 			} catch (err) {
-				console.error("Cloudinary upload failed:", err.message);
-				profilePictureUrl = ''; // fallback if upload fails
+				console.error("Spaces upload failed:", err.message);
+				profilePictureUrl = '';
 			}
 		}
-						const idType = identifier.includes('@') ? 'email' : 'username';
 
 		// Step 4: Check if user already exists
 		let user = await User.findOne({ email: userdata.email });
 		if (!user) {
-						try {
-							console.info("LOGIN_LOOKUP", {
-								idType,
-								found: !!user,
-							});
-						} catch {}
 			// Generate a secure random password for LinkedIn users
 			const tempPassword = crypto.randomBytes(12).toString('hex');
-			// This password would meet our criteria with uppercase, lowercase, numbers and special characters
-						try {
-							console.info("LOGIN_PASSWORD_MATCH", { match: !!isMatch, userId: String(user._id) });
-						} catch {}
 			const securePassword = tempPassword + 'A1!';
-			
 			const salt = await bcrypt.genSalt(10);
 			const hashedPassword = await bcrypt.hash(securePassword, salt);
-			
 			user = new User({
 				name: userdata.name,
 				email: userdata.email,
 				username: userdata.email.split("@")[0],
-						try {
-							console.info("LOGIN_COOKIE_OPTIONS", {
-								cookieName,
-								sameSite: baseCookieOptions.sameSite,
-								secure: baseCookieOptions.secure,
-								domain: baseCookieOptions.domain || null,
-								trustProxy: req.app.get('trust proxy') || false,
-							});
-						} catch {}
-				password: hashedPassword, // Store hashed password
+				password: hashedPassword,
 				role: "user",
 				profilePicture: profilePictureUrl,
 			});
-						try { console.info("LOGIN_COOKIE_SET_CALLED", { cookieName }); } catch {}
 			await user.save();
 		}
 
